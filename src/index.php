@@ -27,12 +27,12 @@ function prepare()
 function cleanup($resource): void
 {
     fclose($resource);
-    echo "Bye!\n";
+    print("Bye!\n");
 }
 
 function newLine(): void
 {
-    echo "\n";
+    print("\n");
 }
 
 function askRole($resource): string
@@ -104,10 +104,10 @@ function askToAi($inputRole, $question)
 
 function showAnswer($result)
 {
-    echo print("---------- Answer ----------\n");
+    print("---------- Answer ----------\n");
     // Get Content
-    echo $result->choices[0]->message->content . "\n";
-    echo print("----------------------------\n");
+    print($result->choices[0]->message->content . "\n");
+    print("----------------------------\n");
 }
 
 // INFO: 一連の処理実行
