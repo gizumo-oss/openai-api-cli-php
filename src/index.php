@@ -11,7 +11,69 @@ function init(): void
     $dotenv->load();
 }
 
-function index(): void
+/**
+ * @return resource
+ */
+function prepare()
+{
+    $resource = fopen('php://stdin', 'r');
+    if(!$resource) {
+        exit("[error] STDIN failure.\n");
+    }
+
+    return $resource;
+}
+
+function cleanup($resource): void
+{
+    fclose($resource);
+    echo "Bye!\n";
+}
+
+function newLine(): void
+{
+    echo "\n";
+}
+
+function askRole($resource): string
+{
+    $times = 0;
+    while (true) {
+        echo "ChatGPTの役割を入力してください。ex)翻訳者 > ";
+
+        $input = trim(fgets($resource, 64));
+        if ($input === '') {
+            $times++;
+            if ($times === 3) {
+                exit("[error] Too many attempts");
+            }
+            continue;
+        }
+
+        return $input;
+    }
+}
+
+function askQuestion($resource): string
+{
+    $times = 0;
+    while (true) {
+        echo "質問を入力してください。ex)'Better than do nothing'を日本語に翻訳してください。 > ";
+
+        $input = trim(fgets($resource, 64));
+        if ($input === '') {
+            $times++;
+            if ($times === 3) {
+                exit("[error] Too many attempts");
+            }
+            continue;
+        }
+
+        return $input;
+    }
+}
+
+function askToAi($inputRole, $question)
 {
     $openAi = new OpenAi($_ENV['OPENAI_API_KEY']);
     $chat = $openAi->chat([
@@ -19,19 +81,11 @@ function index(): void
         'messages' => [
             [
                 "role" => "system",
-                "content" => "You are a helpful assistant."
+                "content" => "あなたは{$inputRole}です。",
             ],
             [
                 "role" => "user",
-                "content" => "Who won the world series in 2020?"
-            ],
-            [
-                "role" => "assistant",
-                "content" => "The Los Angeles Dodgers won the World Series in 2020."
-            ],
-            [
-                "role" => "user",
-                "content" => "Where was it played?"
+                "content" => $question,
             ],
         ],
         'temperature' => 1.0,
@@ -42,14 +96,31 @@ function index(): void
 
     // decode response
     $decoded = json_decode($chat);
-    echo var_dump($decoded);
+    // INFO: デバッグ用
+    // echo var_dump($decoded);
 
-    echo "\n\n";
-
-    echo print("----- Result -----\n");
-    // Get Content
-    echo($decoded->choices[0]->message->content);
+    return $decoded;
 }
 
+function showAnswer($result)
+{
+    echo print("---------- Answer ----------\n");
+    // Get Content
+    echo $result->choices[0]->message->content . "\n";
+    echo print("----------------------------\n");
+}
+
+// INFO: 一連の処理実行
 init();
-index();
+$resource = prepare();
+
+$role = askRole($resource);
+$question = askQuestion($resource);
+newLine();
+
+$result = askToAi($role, $question);
+newLine();
+
+showAnswer($result);
+
+cleanUp($resource);
