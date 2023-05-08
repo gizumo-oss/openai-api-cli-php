@@ -1,4 +1,4 @@
-# cli-chatgpt-bot-php
+# openai-api-cli-php
 PHPを使用し、CLIで受け付けた入力を元にOpenAI APIにリクエストを行い、得られた結果を表示するサンプルです。
 
 ## Requirements
